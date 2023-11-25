@@ -21,7 +21,7 @@ void master() {
     int size;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     if (size == 1) {
-        cout << "Can`t run without slaves! Just buy some..." << endl;
+        cout << "Нельзя запускать без дочерних процессов, добавьте потоки" << endl;
         return;
     }
 
@@ -37,7 +37,7 @@ void master() {
     int len = len_for_node(size - 1, n);
     init_data[3] = len;
     if (!len) {
-        cout << "Can`t split lines by processes" << endl;
+        cout << "Неправильное количество процессор, должно быть N - где N  - количество строк в матрице А + 1 для основного процесса (master)" << endl;
         exit(418);
     }
 
