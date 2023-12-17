@@ -2,7 +2,13 @@
 #include <fstream> 
 #include <mpi.h> 
 #include <iomanip> 
-
+/*
+* Лабораторная работа #2
+* "Суперкомпьютерные вычисления"
+* Вариант №1. Реализовать блочный алгоритм распределенного параллельного
+* перемножения матриц A и B с размерами (8 * 5) и (5 * 3) соответственно.
+* Работу выполнил Быков Егор ИДМ-22-01
+*/
 using namespace std;
 
 int len_for_node(int size, int all) {
@@ -38,39 +44,39 @@ void master() {
     init_data[3] = len;
     if (!len) {
         cout << "Неправильное количество процессор, должно быть N - где N  - количество строк в матрице А + 1 для основного процесса (master)" << endl;
-        exit(418);
+        exit(69);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(init_data, 4, MPI_INTEGER, 0, MPI_COMM_WORLD);
     delete[] init_data;
 
-    int* a = new int[n * k],
-        * b = new int[k * m];
+     int* a = new int[n * k];
+     int* b = new int[k * m];
+
+    //Ввод и вывод исходных матриц на экран
     for (int i = 0; i < n * k; i++) {
         a[i] = rand() % (6)+5;
-    }
-    for (int i = 0; i < k * m; i++) {
-        b[i] = rand() % (6) + 5;;
-    }
-    for (int i = 0; i < n * k; i++) {
-        if(i%k==0)
+        if (i % k == 0)
             cout << endl;
         cout << a[i] << " ";
     }
     cout << endl;
     for (int i = 0; i < k * m; i++) {
+        b[i] = rand() % (6) + 5;
         if (i % m == 0)
             cout << endl;
         cout << b[i] << " ";
     }
     cout << endl << endl;
+
     int* empty = new int[len * k];
     int* buf = new int[(len + n) * k];
     memcpy(buf + (len * k), a, n * k * sizeof(int));
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Scatter(buf, len * k, MPI_INTEGER, empty, len * k, MPI_INTEGER, 0, MPI_COMM_WORLD);
+    //очищения памяти для массивов
     delete[] empty;
     delete[] buf;
     delete[] a;
@@ -123,20 +129,22 @@ void slave() {
             }
         }
     }
+    //очищения памяти для массивов a и b
     delete[] a;
     delete[] b;
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gather(c, len * m, MPI_INTEGER, empty, 0, MPI_INTEGER, 0, MPI_COMM_WORLD);
+    //очищения памяти для массива c
     delete[] c;
 }
-
+// старт работы программы
 int main(int argc, char** argv) {
     int rank;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
+    // в зависимости какой номер процесса (основной процесс или вспомогательный) вызывается соотвествующая номеру процесса функция
     rank ? slave() : master();
 
     MPI_Finalize();
