@@ -1,5 +1,6 @@
 ﻿#include <iostream> 
 #include <fstream> 
+#include <chrono>
 #include <mpi.h> 
 #include <iomanip> 
 /*
@@ -140,6 +141,7 @@ void slave() {
 }
 // старт работы программы
 int main(int argc, char** argv) {
+    auto start = std::chrono::high_resolution_clock::now();
     int rank;
 
     MPI_Init(&argc, &argv);
@@ -148,5 +150,8 @@ int main(int argc, char** argv) {
     rank ? slave() : master();
 
     MPI_Finalize();
+    auto finish = std::chrono::high_resolution_clock::now();
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish - start);
+    std::cout << "\n" << microseconds.count() << "us\n";
     return 0;
 }
